@@ -1,0 +1,149 @@
+// prisma/schema.prisma
+// Модель данных Verde Marea.
+// Значения enum намеренно в нижнем регистре — они совпадают с продуктовой
+// спецификацией (README.md) и правилами в docs/data-model.md.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Роли пользователей системы.
+enum Role {
+  user
+  admin
+  super_admin
+}
+
+/// Машина состояний брони (переходы описаны в docs/data-model.md).
+enum BookingStatus {
+  pending
+  confirmed
+  cancelled
+  completed
+  no_show
+}
+
+/// Вид служебного уведомления (совпадает с design.md).
+enum NotificationType {
+  success
+  error
+  info
+}
+
+/// Пользователь. Пароль хранится только как passwordHash (bcryptjs, 12 раундов).
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  passwordHash  String
+  name          String
+  role          Role           @default(user)
+  bookings      Booking[]
+  notifications Notification[]
+  auditLogs     AuditLog[]     @relation("AuditLogActor")
+  sessions      Session[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+/// Стол ресторана. capacity — количество мест (правило «подходящий стол»).
+model Table {
+  id        String    @id @default(cuid())
+  number    Int       @unique
+  capacity  Int
+  bookings  Booking[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+/// Окно бронирования (90 минут). Свободный стол проверяется на уровне
+/// брони: один слот могут одновременно занять несколько разных столов.
+model Slot {
+  id        String    @id @default(cuid())
+  startTime DateTime
+  endTime   DateTime
+  bookings  Booking[]
+  createdAt DateTime  @default(now())
+
+  @@unique([startTime, endTime])
+  @@index([startTime])
+}
+
+/// Бронирование: гость + окно + стол.
+/// Защита от дублей — на сервере (см. docs/data-model.md);
+/// индексы ниже ускоряют эти проверки.
+model Booking {
+  id            String         @id @default(cuid())
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slotId        String
+  slot          Slot           @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  tableId       String
+  table         Table          @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  /// Число гостей; должно быть <= table.capacity.
+  guests        Int
+  status        BookingStatus  @default(pending)
+  /// Необязательный комментарий гостя.
+  notes         String?
+  notifications Notification[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([userId])
+  @@index([slotId, tableId])
+  @@index([slotId, userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+/// Служебное уведомление для пользователя (без внешних провайдеров).
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookingId String?
+  booking   Booking?         @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  type      NotificationType @default(info)
+  message   String
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@index([userId, read])
+}
+
+/// Журнал изменений (служебный сценарий). actor может быть null,
+/// если инициатор действия был удалён — история сохраняется.
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  actor     User?    @relation("AuditLogActor", fields: [actorId], references: [id], onDelete: SetNull)
+  /// Действие, напр. "booking.confirmed", "user.role_changed".
+  action    String
+  /// Сущность, над которой выполнено действие, напр. "Booking", "User".
+  entity    String
+  /// id сущности.
+  entityId  String?
+  /// Структурированные детали (старое/новое значение и т.п.).
+  details   Json?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([entity, entityId])
+}
+
+/// Сессия пользователя: случайный токен в httpOnly-cookie.
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}

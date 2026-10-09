@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+/* Дизайн-токены Verde Marea (см. design.md) */
+@theme {
+  --color-forest: #1f4d3a;
+  --color-gold: #c7a76c;
+  --color-cream: #f5f1e8;
+  --color-ink: #1b1b1b;
+  --color-danger: #9c3a3a;
+}
+
+/* Шрифты из next/font (переменные задаются в app/layout.tsx) */
+@theme inline {
+  --font-sans: var(--font-manrope);
+  --font-serif: var(--font-cormorant);
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background-color: #f5f1e8;
+  color: #1b1b1b;
+  font-family: var(--font-manrope), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-cormorant), serif;
+}
+
+::selection {
+  background-color: #c7a76c;
+  color: #1b1b1b;
+}

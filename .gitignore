@@ -1,0 +1,15 @@
+# зависимости
+node_modules/
+
+# локальное окружение (пароли, строки подключения)
+.env
+
+# сборка Next.js
+.next/
+out/
+
+# кэш TypeScript
+*.tsbuildinfo
+
+# логи
+*.log
