@@ -1,0 +1,37 @@
+{
+  "version": 2,
+  "sessionId": "session-b12c80bd-0bba-47e3-9317-c955725b514b",
+  "cwd": "c:\\Users\\User\\Documents\\project",
+  "updatedAt": 1791578005601,
+  "checkpoints": [
+    {
+      "turn": 20,
+      "commit": "522ff4d802b75e2c9cd3d79b1a0627e416f1ba12",
+      "time": 1791577338854,
+      "untracked": [],
+      "truncated": false,
+      "after": {
+        "commit": "4e8c7db44f570b42c5a66d9b864f4c0a127050bf",
+        "time": 1791577368164
+      }
+    },
+    {
+      "turn": 21,
+      "commit": "4e8c7db44f570b42c5a66d9b864f4c0a127050bf",
+      "parent": "4e8c7db44f570b42c5a66d9b864f4c0a127050bf",
+      "time": 1791577805167,
+      "untracked": [],
+      "truncated": false
+    },
+    {
+      "turn": 22,
+      "commit": "4e8c7db44f570b42c5a66d9b864f4c0a127050bf",
+      "parent": "4e8c7db44f570b42c5a66d9b864f4c0a127050bf",
+      "time": 1791578004496,
+      "untracked": [],
+      "truncated": false
+    }
+  ],
+  "rolls": [],
+  "undos": []
+}
