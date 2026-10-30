@@ -1,6 +1,7 @@
 // prisma/seed.ts
 // Контрольные данные для локальной проверки. Запуск: npx prisma db seed
 import { PrismaClient, Role, BookingStatus } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { hash } from "bcryptjs";
 import {
   BOOKING_RULES,
@@ -8,7 +9,10 @@ import {
   generateSlotsForDay,
 } from "../lib/booking-rules.ts";
 
-const prisma = new PrismaClient();
+// pg-адаптер: TLS через Node.js — работает на Windows (движок Prisma на Windows не всегда).
+const prisma = new PrismaClient({
+  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
+});
 
 const SALT_ROUNDS = 12; // bcryptjs: 12 раундов
 
